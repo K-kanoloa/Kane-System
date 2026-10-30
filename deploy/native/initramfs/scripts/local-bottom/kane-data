@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+case "${1:-}" in prereqs) exit 0;; esac
+. /scripts/functions
+[ -f "$rootmnt/etc/kane-system/installed.env" ] || exit 0
+. "$rootmnt/etc/kane-system/installed.env"
+# Values are generated locally from blkid by the trusted installer, never client input.
+mkdir -p "$rootmnt/.kane-data"
+dev=$(/sbin/blkid -U "$KANE_ROOT_UUID")
+mount -t btrfs -o subvol=@data "$dev" "$rootmnt/.kane-data" || panic 'Kane persistent data mount failed'
+data="$rootmnt/.kane-data"
+mkdir -p "$rootmnt/kane-boot"
+mount -t btrfs -o subvol=@boot "$dev" "$rootmnt/kane-boot" || panic 'Kane boot metadata mount failed'
+mount -t overlay overlay -o "lowerdir=$rootmnt/etc,upperdir=$data/etc-upper,workdir=$data/etc-work" "$rootmnt/etc" || panic 'Kane Owner configuration mount failed'
+for entry in state:var/lib/kane-system runtime:var/lib/kane-runtime models:var/lib/kane-models docker:var/lib/docker home:home; do
+ source=${entry%%:*}; target=${entry#*:}
+ mkdir -p "$rootmnt/$target"
+ mount --bind "$data/$source" "$rootmnt/$target" || panic 'Kane data bind failed'
+done

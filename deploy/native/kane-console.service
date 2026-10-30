@@ -1,0 +1,24 @@
+[Unit]
+Description=Kane native reference console and authenticated local Owner login
+After=systemd-user-sessions.service plymouth-quit-wait.service
+Before=getty.target
+# The reference kernel already provides this UART. Avoid an observed lost udev
+# readiness notification; this never bypasses agetty/PAM or Owner initialization.
+ConditionPathExists=/dev/ttyS0
+
+[Service]
+Type=idle
+ExecStart=/usr/libexec/kane-system/serial-console
+Restart=always
+RestartSec=2
+KillMode=process
+SendSIGHUP=yes
+StandardInput=tty
+StandardOutput=tty
+TTYPath=/dev/ttyS0
+TTYReset=yes
+TTYVHangup=yes
+UtmpIdentifier=ttyS0
+
+[Install]
+WantedBy=getty.target

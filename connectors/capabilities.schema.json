@@ -1,0 +1,52 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "supports_stream": {
+      "type": "boolean"
+    },
+    "supports_resume": {
+      "type": "boolean"
+    },
+    "supports_cancel": {
+      "type": "boolean"
+    },
+    "supports_approval": {
+      "type": "boolean"
+    },
+    "supports_parallel_sessions": {
+      "type": "boolean"
+    },
+    "max_parallel_sessions": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1
+    },
+    "steer_mode": {
+      "enum": [
+        "native",
+        "safe_boundary",
+        "follow_up_only"
+      ]
+    },
+    "branch_mode": {
+      "enum": [
+        "native",
+        "replay",
+        "unsupported"
+      ]
+    }
+  },
+  "required": [
+    "supports_stream",
+    "supports_resume",
+    "supports_cancel",
+    "supports_approval",
+    "supports_parallel_sessions",
+    "max_parallel_sessions",
+    "steer_mode",
+    "branch_mode"
+  ]
+}

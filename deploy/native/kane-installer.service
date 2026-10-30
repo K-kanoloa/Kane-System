@@ -1,0 +1,15 @@
+[Unit]
+Description=Kane System dedicated offline installer
+After=local-fs.target
+Conflicts=serial-getty@ttyS0.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/libexec/kane-system/console.py
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/ttyS0
+TTYReset=yes
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target

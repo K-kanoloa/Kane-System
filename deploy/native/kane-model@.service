@@ -1,0 +1,28 @@
+[Unit]
+Description=Kane managed ModelInstance %i (original Model Runtime)
+PartOf=kane-system.target
+Requires=kane-core.service
+After=kane-core.service
+ConditionPathExists=/etc/kane-system/models/%i.json
+[Service]
+Type=exec
+User=kane-system
+Group=kane-system
+ExecStart=/usr/bin/python3 /usr/libexec/kane-system/model-unit.py %i
+ExecStop=/usr/bin/python3 /usr/libexec/kane-system/stop-unit.py model %i
+Restart=no
+KillMode=control-group
+TimeoutStopSec=30
+Delegate=cpu memory pids
+DelegateSubgroup=manager
+RuntimeDirectory=kane-model-%i
+RuntimeDirectoryMode=0700
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/var/lib/kane-models /run/kane-system
+ProtectHome=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost

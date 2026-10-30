@@ -1,0 +1,52 @@
+{
+  "version": "phase5-fixed-public-workflows-v1",
+  "scope": "Deterministic fixture engineering benchmark, not real-model intelligence/quality superiority",
+  "runs_per_configuration": 5,
+  "modes": [
+    "Direct",
+    "Collaboration",
+    "CollaborationReduced"
+  ],
+  "tasks": [
+    {
+      "id": "single-public-marker",
+      "markers": [
+        "P5_ALPHA"
+      ],
+      "expected": "# Phase 0 fixture\n\nP5_ALPHA\n"
+    },
+    {
+      "id": "two-independent-public-markers",
+      "markers": [
+        "P5_ALPHA",
+        "P5_BETA"
+      ],
+      "expected": "# Phase 0 fixture\n\nP5_ALPHA\nP5_BETA\n"
+    }
+  ],
+  "fixed_constraints": {
+    "total_token_cap": 10000,
+    "execution_cpu_millis": 1000,
+    "execution_memory_bytes": 1073741824,
+    "model": "deterministic-v1",
+    "seed": "scripted, no random sampling",
+    "shared_model_concurrency": 1,
+    "max_agents": 3,
+    "tools": "original read, exact public paths only",
+    "provider_invoice": "UNKNOWN, no real billing"
+  },
+  "objective": {
+    "success": 0.25,
+    "quality": 0.35,
+    "time": 0.15,
+    "tokens": 0.1,
+    "cpu": 0.075,
+    "memory": 0.075,
+    "coordination_penalty": 0.1,
+    "risk_penalty": 0.02
+  },
+  "acceptance": "Exact independent UTF-8 bytes and SHA256, source inputs unchanged, all source reads confirmed, Task Done only after independent verification",
+  "setup": "All registered runtimes included in process resource accounting. Execution timing starts after identical ACP warm-up; ACP setup time separately reported. Timing includes Core decisions, Context sharing and verification; setup separately reported.",
+  "decision": "Matched N>=5 only; retain every attempt, even failure. Direct on absent/negative benefit. No forced positive result.",
+  "ablation": "Two-marker task only: remove one reader role, existing aggregate Agent reads that fragment itself and merges the other authorized Context. Same final task, total budget, inputs and oracle; records all extra coordination."
+}

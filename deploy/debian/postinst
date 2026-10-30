@@ -1,0 +1,22 @@
+#!/bin/sh
+set -eu
+case "$1" in
+  configure)
+    systemd-sysusers /usr/lib/sysusers.d/kane-system.conf
+    install -d -o kane-system -g kane-system -m 0700 /var/lib/kane-system
+    # Schema checks run on every install/upgrade, not only first initialization.
+    # Refusing a future schema prevents silent downgrade of persistent data.
+    runuser -u kane-system -- /usr/bin/kanesys --config /etc/kane-system/core.env init >/dev/null
+    if [ -d /run/systemd/system ]; then
+      systemctl daemon-reload
+      systemctl enable kane-system.target
+      # An explicit package operation begins a new activation attempt; previous
+      # crash/recovery starts must not exhaust its start-rate counter.
+      systemctl reset-failed kane-core.service
+      systemctl restart kane-system.target
+    else
+      # Image/chroot build: enable for its next real boot, never start a fake daemon.
+      systemctl --root=/ enable kane-system.target
+    fi
+    ;;
+esac

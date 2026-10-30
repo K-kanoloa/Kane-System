@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+case "${1:-}" in prereqs) exit 0;; esac
+. /usr/share/initramfs-tools/hook-functions
+copy_exec /usr/sbin/blkid /sbin/blkid
+manual_add_modules btrfs
+manual_add_modules overlay

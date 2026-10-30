@@ -1,0 +1,3 @@
+-r requirements.txt
+pytest-asyncio>=1.0,<2
+

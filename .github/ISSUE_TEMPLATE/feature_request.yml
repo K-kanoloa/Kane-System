@@ -1,0 +1,36 @@
+name: Feature request
+description: Propose a scoped Kane System capability
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user or system problem before proposing implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Required outcome and acceptance criteria
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Product area
+      options: [Model integrations, Agent integrations, Workspace, Installation, Usability, Documentation]
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Security, resource and compatibility boundaries
+  - type: checkboxes
+    id: architecture
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: This request contains no credentials or private engineering material.
+          required: true

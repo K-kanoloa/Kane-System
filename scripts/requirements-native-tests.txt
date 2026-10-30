@@ -1,0 +1,3 @@
+# Host-side serial-console controllers; no guest or cloud provisioning.
+pexpect==4.9.0
+ptyprocess==0.7.0

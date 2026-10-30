@@ -1,0 +1,20 @@
+[Unit]
+Description=Kane shared Rust Model Gateway and FIFO
+PartOf=kane-system.target
+Requires=kane-core.service
+After=kane-core.service
+[Service]
+Type=exec
+User=kane-system
+Group=kane-system
+ExecStart=/usr/bin/kanesys --config /etc/kane-system/core.env model-gateway /run/kane-system/model.sock
+Restart=no
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/run/kane-system
+ProtectHome=yes
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost

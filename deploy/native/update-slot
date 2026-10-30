@@ -1,0 +1,83 @@
+#!/usr/bin/python3
+"""Mechanical slot staging; called only by the Rust OS authority as local root.
+No Core DB mutations, refunds, Prompt dispatch, credential deletion or data restore.
+"""
+import json,os,shutil,subprocess,sys,uuid
+from pathlib import Path
+TOP=Path('/run/kane-os-top')
+def run(*args):return subprocess.check_output(args,text=True).strip()
+def atomic(path,data):
+ tmp=path.with_name(path.name+'.new-'+uuid.uuid4().hex)
+ with tmp.open('x') as f:
+  os.fchmod(f.fileno(),0o600);f.write(data);f.flush();os.fsync(f.fileno())
+ os.replace(tmp,path)
+ fd=os.open(path.parent,os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def main():
+ os.environ['LC_ALL']='C.UTF-8'
+ assert os.geteuid()==0
+ assert Path('/usr/share/kane-system/role').read_text().strip()=='installed'
+ active=run('findmnt','-n','-o','FSROOT','/')
+ assert active in ['/@slots/A','/@slots/B'], 'unknown active OS slot'
+ current=active[-1];other='B' if current=='A' else 'A'
+ op=sys.argv[1];assert op in ['upgrade','previous','rollback']
+ TOP.mkdir(mode=0o700)
+ device=run('findmnt','-n','-o','UUID','/')
+ assert all(c in 'abcdef0123456789-' for c in device) and len(device)==36
+ run('mount','-t','btrfs','-o','subvolid=5,compress=zstd:3','UUID='+device,str(TOP))
+ try:
+  boot=TOP/'@boot/grub';slot=TOP/'@slots'/other
+  selected=dict(line.split('=',1) for line in run('grub-editenv',str(boot/'grubenv'),'list').splitlines() if '=' in line).get('saved_entry')
+  assert selected==('0' if current=='A' else '1'), 'another slot switch is already pending; reboot or inspect before another maintenance action'
+  if op=='previous':
+   previous=Path('/run/kane-previous');previous.mkdir(mode=0o700,exist_ok=True)
+   for n in ['installed-manifest.json','installed-manifest.sig']:
+    shutil.copyfile(slot/'usr/share/kane-system'/n,previous/n);(previous/n).chmod(0o600)
+   print(previous/'installed-manifest.json');return
+  # An enabled instance whose process survives stop would make snapshot/upgrade unsafe.
+  assert not run('systemctl','list-units','--state=active','--no-legend','kane-agent@*.service','kane-model@*.service'), 'managed runtime still active'
+  mounts=run('findmnt','-rn','-o','TARGET').splitlines()
+  assert not any(p.startswith('/var/lib/kane-runtime/') for p in mounts), 'unmount bounded runtime HOME before system update'
+  token=uuid.uuid4().hex
+  journal=TOP/'@data/os-update.json'
+  if op=='upgrade':
+   bundle=Path(sys.argv[2]);m=json.loads((bundle/'manifest.json').read_text())
+   atomic(journal,json.dumps({'phase':'preparing','target_slot':other,'sequence':m['sequence'],'token':token,'task_replay':False})+'\n')
+   snapshots=TOP/'@snapshots';snapshots.mkdir(exist_ok=True)
+   run('btrfs','subvolume','snapshot','-r',str(TOP/'@data'),str(snapshots/('before-'+token)))
+   stage=TOP/'@slots'/('stage-'+token);run('btrfs','subvolume','create',str(stage))
+   # Compression is also a subvolume property. A second mount's global options
+   # alone cannot establish it when an older installed root mounted first.
+   run('btrfs','property','set',str(stage),'compression','zstd')
+   run('bsdtar','--chroot','-xpf',str(bundle/'rootfs.tar.zst'),'-C',str(stage))
+   for p in ['dev','proc','sys','run','tmp','mnt','kane-boot']:(stage/p).mkdir(exist_ok=True)
+   (stage/'tmp').chmod(0o1777)
+   # Installation-local mapping, not the builder's cloud-image fstab.
+   (stage/'etc/kane-system/installed.env').write_text('KANE_ROOT_UUID='+device+'\n')
+   (stage/'etc/fstab').write_text('# Native initramfs mounts OS and persistent data.\n')
+   (stage/'usr/share/kane-system/role').write_text('installed\n')
+   for src,dst in [('manifest.json','installed-manifest.json'),('manifest.sig','installed-manifest.sig')]:shutil.copyfile(bundle/src,stage/'usr/share/kane-system'/dst)
+   kernels=sorted((stage/'boot').glob('vmlinuz-*'));assert kernels
+   kernel=kernels[-1];initrd=stage/'boot'/kernel.name.replace('vmlinuz-','initrd.img-');assert initrd.is_file()
+   for name,target in [('kane-vmlinuz',kernel.name),('kane-initrd',initrd.name)]:
+    p=stage/'boot'/name
+    if p.exists() or p.is_symlink():p.unlink()
+    p.symlink_to(target)
+   run('sync')
+   # Retain the previous inactive root as an explicitly named recovery asset.
+   os.rename(slot,TOP/'@slots'/('previous-'+token));os.rename(stage,slot)
+   # The selected root NAME must be durable too, not just its extracted files.
+   # Publish no boot selector until both directory renames have reached storage.
+   fd=os.open(TOP/'@slots',os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+   run('sync')
+  else:
+   atomic(journal,json.dumps({'phase':'rollback-preparing','target_slot':other,'token':token,'preserve_current_user_data':True,'task_replay':False})+'\n')
+  # Single final selector publication, after all payload/checkpoint bytes are synced.
+  env=boot/('grubenv.new-'+token)
+  run('grub-editenv',str(env),'create');run('grub-editenv',str(env),'set','saved_entry='+('0' if other=='A' else '1'))
+  with env.open('rb') as f:os.fsync(f.fileno())
+  os.replace(env,boot/'grubenv');fd=os.open(boot,os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+  atomic(journal,json.dumps({'phase':'selected-reboot-required','target_slot':other,'token':token,'task_replay':False})+'\n')
+  run('sync');print('KANE_OS_SLOT_SELECTED',other)
+ finally:
+  subprocess.run(['umount',str(TOP)],check=True);TOP.rmdir()
+if __name__=='__main__':main()

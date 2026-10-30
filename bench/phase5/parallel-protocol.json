@@ -1,0 +1,35 @@
+{
+  "id": "phase5-independent-documents-real-v1",
+  "frozen_before_execution": true,
+  "date": "2026-10-24 Australia/Sydney",
+  "repeats": 5,
+  "order": "Direct-1,Collaboration-1,Collaboration-2,Direct-2,Direct-3,Collaboration-3,Collaboration-4,Direct-4,Direct-5,Collaboration-5",
+  "task": "Read two independent public document extracts and deliver both document identifiers in one editable Artifact. Independent reader outputs may execute concurrently; final aggregation depends on independently verified reads.",
+  "documents": [
+    "Public document A. Document identifier: DOC_A_48Q. Subject: maintenance schedule for the fictional North library. Review date: 2026-11-02. This public fixture has no external actions.\n",
+    "Public document B. Document identifier: DOC_B_93R. Subject: inventory summary for the fictional South archive. Review date: 2026-11-09. This public fixture has no external actions.\n"
+  ],
+  "identifiers": ["DOC_A_48Q", "DOC_B_93R"],
+  "direct_goal": "Use the read tool to read input.txt with arguments {\"file_path\":\"input.txt\"}. It contains two independent public document extracts. Return both document identifiers, in document order. Do not guess identifiers or use other tools.",
+  "reader_goal": "Use the read tool to read input.txt with arguments {\"file_path\":\"input.txt\"}. Then return only the exact text you read. Do not guess the file content. Do not use any other tool.",
+  "aggregate_goal": "Read the two Owner-authorized reference DATA records attached to this message. Return both document identifiers, in document order A then B. Do not guess identifiers. The documents have already been read and independently checked; do not call tools.",
+  "acceptance": "Same independent root oracle: one content-hashed editable Artifact contains both exact identifiers, actual controlled original read results confirm every input document, every source remains byte-identical, and only independent verification sets Done. Each collaboration child must separately pass its full-document read/hash/source oracle.",
+  "resources": {
+    "total_agent_cpu_millis": 1000,
+    "total_agent_memory_bytes": 1073741824,
+    "total_task_token_cap": 100000,
+    "shared_model_instances": 1,
+    "model_total_context_tokens": 16384,
+    "model_parallelism": 2,
+    "per_call_context_tokens": 8192,
+    "max_output_tokens": 512,
+    "model_threads": 2,
+    "model": "existing public local Qwen3-0.6B Q8_0, temperature0/seed0/thinking=false",
+    "model_profile": "Existing diagnostic unmanaged local CPU reference backend; no new hard-isolation claim. Same one model/process/thread/KV configuration for both modes; whole Host cgroup cap unchanged."
+  },
+  "parallelism_rationale": "The document reads/understanding are independent and need no shared writes. Both modes receive the same two-slot backend and total Agent ceilings. CPU contention and aggregation can still erase parallel benefit; a negative result is valid.",
+  "history": "All attempts declared in one Rust Core database, verified success and token consumption derived by allocation_sample, actual wall/CPU/memory/coordination independently measured. No synthetic scored samples. Failed/Unknown/ungraded attempts remain visible and force conservative policy as implemented.",
+  "objective": {"quality":0.35,"success":0.25,"wall":0.15,"tokens":0.10,"cpu":0.075,"memory":0.075,"coordination_penalty":0.10,"risk_penalty":0.02,"threshold":0.05},
+  "failure_policy": "No outcome retries, no prompt replay, no replacement of failed samples. Preserve Unknown holds and shared route freeze; later blocked attempts are recorded. Do not tune protocol or weights after observing results.",
+  "measurement": "Warm ACP outcome interval including coordination and independent verification; record startup separately. Whole-host CPU and per-Agent kernel counters; individual peaks are not simultaneous Host peak. Report every attempt and group median/IQR, no invoice conversion."
+}

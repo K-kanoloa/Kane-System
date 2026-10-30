@@ -1,0 +1,22 @@
+[package]
+name = "kane-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Kane System experimental authoritative object registry"
+
+[dependencies]
+kane-models = { path = "../models" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+uuid.workspace = true
+rusqlite = { version = "0.37", features = ["bundled"] }
+sha2 = "0.10"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+rustix = { version = "1.1", features = ["fs"] }
+
+[dev-dependencies]
+tempfile = "3"
+

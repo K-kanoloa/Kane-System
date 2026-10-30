@@ -1,0 +1,31 @@
+{
+  "version": "phase0-fixed-workflows-v1",
+  "model": "deterministic-v1 (scripted, no reasoning quality measurement)",
+  "mode": "Direct",
+  "runs_per_task": 5,
+  "budget_tokens": 256,
+  "objective": {"correct_workflow": 1, "speed_advantage": 0},
+  "tasks": [
+    {
+      "id": "simple-one-read",
+      "goal": "Read input.txt and deliver its marker in the fixed Markdown layout.",
+      "files": {"input.txt": "BASELINE_ALPHA\n"},
+      "reads": [{"path": "input.txt", "marker": "BASELINE_ALPHA"}],
+      "expected": "# Phase 0 fixture\n\nBASELINE_ALPHA\n"
+    },
+    {
+      "id": "medium-two-reads",
+      "goal": "Read input.txt and input2.txt in order and preserve both markers in Markdown.",
+      "files": {"input.txt": "BASELINE_BETA\n", "input2.txt": "BASELINE_GAMMA\n"},
+      "reads": [{"path": "input.txt", "marker": "BASELINE_BETA"}, {"path": "input2.txt", "marker": "BASELINE_GAMMA"}],
+      "expected": "# Phase 0 fixture\n\nBASELINE_BETA\nBASELINE_GAMMA\n"
+    },
+    {
+      "id": "complex-three-unicode-reads",
+      "goal": "Read the three input files in order and preserve their UTF-8 markers in editable Markdown.",
+      "files": {"input.txt": "阶段零甲\n", "input2.txt": "阶段零乙\n", "input3.txt": "阶段零丙\n"},
+      "reads": [{"path": "input.txt", "marker": "阶段零甲"}, {"path": "input2.txt", "marker": "阶段零乙"}, {"path": "input3.txt", "marker": "阶段零丙"}],
+      "expected": "# Phase 0 fixture\n\n阶段零甲\n阶段零乙\n阶段零丙\n"
+    }
+  ]
+}

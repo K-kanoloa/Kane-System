@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+if [ "$1" = upgrade ] && [ -f /etc/kane-system/core.env ] && [ -x /usr/bin/kanesys ]; then
+  install -d -o kane-system -g kane-system -m 0700 /var/lib/kane-system/backups
+  checkpoint=$(mktemp -d /var/lib/kane-system/backups/upgrade.XXXXXXXX)
+  chown kane-system:kane-system "$checkpoint"
+  runuser -u kane-system -- /usr/bin/kanesys --config /etc/kane-system/core.env backup "$checkpoint/state.db" >/dev/null
+fi

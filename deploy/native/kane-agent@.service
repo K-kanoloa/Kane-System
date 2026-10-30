@@ -1,0 +1,24 @@
+[Unit]
+Description=Kane managed Agent %i (original Supervisor)
+PartOf=kane-system.target
+Requires=kane-core.service kane-docker.service
+After=kane-core.service kane-docker.service
+ConditionPathExists=/etc/kane-system/runtimes/%i.json
+[Service]
+Type=exec
+User=kane-system
+Group=kane-system
+SupplementaryGroups=kane-runtime-docker
+ExecStart=/usr/bin/kanesys --config /etc/kane-system/core.env supervise /etc/kane-system/runtimes/%i.json
+# Rust owns bounded process retries. systemd must not reset its retry counter.
+ExecStop=/usr/bin/python3 /usr/libexec/kane-system/stop-unit.py agent %i
+Restart=no
+KillMode=control-group
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/kane-runtime /run/kane-system
+RestrictAddressFamilies=AF_UNIX
