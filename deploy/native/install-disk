@@ -1,0 +1,78 @@
+#!/bin/sh
+# Root-only mechanical helper called by the verified Rust installer. No network.
+set -eu
+export LC_ALL=C.UTF-8
+umask 077
+bundle=$1
+disk=$2
+[ "$(cat /usr/share/kane-system/role)" = installer ]
+[ "$(id -u)" = 0 ]
+mountpoint=/run/kane-install
+mkdir -m 700 "$mountpoint"
+cleanup() { umount -R "$mountpoint" 2>/dev/null || :; rmdir "$mountpoint" 2>/dev/null || :; }
+trap cleanup EXIT HUP INT TERM
+printf 'label: gpt\nsize=2M,type=21686148-6449-6E6F-744E-656564454649\nsize=256M,type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B\ntype=0FC63DAF-8483-4772-8E79-3D69D8477DE4\n' | sfdisk "$disk"
+udevadm settle
+case "$disk" in *[0-9]) part="${disk}p";; *) part=$disk;; esac
+mkfs.vfat -F 32 "${part}2"
+mkfs.btrfs -f -L KANE_SYSTEM "${part}3"
+mount -t btrfs -o compress=zstd:3 "${part}3" "$mountpoint"
+mkdir "$mountpoint/@slots"
+btrfs subvolume create "$mountpoint/@slots/A"
+btrfs subvolume create "$mountpoint/@data"
+btrfs subvolume create "$mountpoint/@boot"
+# bsdtar chroot confines archive symlink resolution to the new OS root.
+bsdtar --chroot -xpf "$bundle/rootfs.tar.zst" -C "$mountpoint/@slots/A"
+root="$mountpoint/@slots/A"
+mkdir -p "$root/dev" "$root/proc" "$root/sys" "$root/run" "$root/tmp" "$root/mnt" "$root/kane-boot"
+chmod 1777 "$root/tmp"
+uuid=$(blkid -s UUID -o value "${part}3")
+printf 'KANE_ROOT_UUID=%s\n' "$uuid" > "$root/etc/kane-system/installed.env"
+printf '# Root and persistent subvolumes are mounted by the verified initramfs.\n' > "$root/etc/fstab"
+printf 'installed\n' > "$root/usr/share/kane-system/role"
+cp "$bundle/manifest.json" "$root/usr/share/kane-system/installed-manifest.json"
+cp "$bundle/manifest.sig" "$root/usr/share/kane-system/installed-manifest.sig"
+mkdir -p "$mountpoint/@data/etc-upper" "$mountpoint/@data/etc-work" "$mountpoint/@data/state" "$mountpoint/@data/runtime" "$mountpoint/@data/models" "$mountpoint/@data/docker" "$mountpoint/@data/home"
+chown 901:901 "$mountpoint/@data/state" "$mountpoint/@data/runtime" "$mountpoint/@data/models"
+chmod 700 "$mountpoint/@data" "$mountpoint/@data/state" "$mountpoint/@data/runtime" "$mountpoint/@data/models"
+# These become the public directory roots, not secret storage directories.
+# Owner homes and Core DB/HOME children retain their individual private modes.
+chmod 755 "$mountpoint/@data/etc-upper" "$mountpoint/@data/home"
+kernel=$(find "$root/boot" -maxdepth 1 -name 'vmlinuz-*' -printf '%f\n' | sort -V | tail -1)
+[ -n "$kernel" ]
+initrd="initrd.img-${kernel#vmlinuz-}"
+[ -s "$root/boot/$kernel" ] && [ -s "$root/boot/$initrd" ]
+ln -s "$kernel" "$root/boot/kane-vmlinuz"
+ln -s "$initrd" "$root/boot/kane-initrd"
+btrfs subvolume snapshot "$root" "$mountpoint/@slots/B"
+mkdir -p "$root/boot/efi"
+mount --bind "$mountpoint/@boot" "$root/kane-boot"
+mount --rbind /dev "$root/dev"
+mount --make-rslave "$root/dev"
+mount -t proc proc "$root/proc"
+mount --rbind /sys "$root/sys"
+mount --make-rslave "$root/sys"
+chroot "$root" grub-install --target=i386-pc --boot-directory=/kane-boot "$disk"
+# Both slots have identical kernel names at install; future updates retain each slot's kernel.
+kernel=$(find "$root/boot" -maxdepth 1 -name 'vmlinuz-*' -printf '%f\n' | sort -V | tail -1)
+initrd="initrd.img-${kernel#vmlinuz-}"
+cat > "$mountpoint/@boot/grub/grub.cfg" <<EOF
+set timeout=3
+load_env -f /@boot/grub/grubenv
+set default=\$saved_entry
+menuentry 'Kane System — A' {
+ search --no-floppy --fs-uuid --set=root $uuid
+ linux /@slots/A/boot/kane-vmlinuz root=UUID=$uuid rootflags=subvol=@slots/A,compress=zstd:3 rw console=tty0 console=ttyS0,115200n8
+ initrd /@slots/A/boot/kane-initrd
+}
+menuentry 'Kane System — B (Owner recovery)' {
+ search --no-floppy --fs-uuid --set=root $uuid
+ linux /@slots/B/boot/kane-vmlinuz root=UUID=$uuid rootflags=subvol=@slots/B,compress=zstd:3 rw console=tty0 console=ttyS0,115200n8
+ initrd /@slots/B/boot/kane-initrd
+}
+EOF
+grub-editenv "$mountpoint/@boot/grub/grubenv" create
+grub-editenv "$mountpoint/@boot/grub/grubenv" set saved_entry=0
+# Selection lives outside the replaceable OS slots. No automatic Task replay.
+sync
+printf 'KANE_INSTALL_DISK_WRITTEN %s\n' "$uuid"

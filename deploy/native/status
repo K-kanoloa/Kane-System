@@ -1,0 +1,9 @@
+#!/bin/sh
+# Read-only local diagnostics; never dispatches a Task or reads Owner credentials.
+set -eu
+case "${1:-}" in
+  '') [ "$#" = 0 ] || exit 2; exec /usr/bin/kanesys os status ;;
+  --manifest) [ "$#" = 1 ] || exit 2; exec /usr/bin/cat /usr/share/kane-system/installed-manifest.json ;;
+  --help) printf '%s\n' 'Usage: kane-system-status [--manifest]' ;;
+  *) printf '%s\n' 'Usage: kane-system-status [--manifest]' >&2; exit 2 ;;
+esac

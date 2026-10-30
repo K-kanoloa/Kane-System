@@ -1,0 +1,30 @@
+{
+  "id": "phase5-real-local-public-marker-v1",
+  "runs_per_configuration": 5,
+  "modes": [
+    "Direct",
+    "Collaboration"
+  ],
+  "backend": "Existing public Qwen3-0.6B Q8_0 GGUF, llama.cpp CPU, temp=0, seed=0, thinking=false",
+  "task": "Use the read tool to read input.txt with arguments {\"file_path\":\"input.txt\"}. Then return only the exact text you read. Do not guess the file content. Do not use any other tool.",
+  "data": "P5_REAL_LOCAL_MARKER_7X9\n",
+  "acceptance": "Artifact contains the exact fixed marker, UTF-8/hash valid; original read confirmed, every input immutable; independent verification alone sets Done. Identical standard for both modes.",
+  "resource_cap": {
+    "total_tokens": 100000,
+    "agent_cpu_millis": 1000,
+    "agent_memory_bytes": 1073741824,
+    "shared_model_instances": 1,
+    "model_threads": 2,
+    "model_parallelism": 1,
+    "context_tokens": 16384,
+    "output_tokens": 512
+  },
+  "roles": {
+    "Direct": "one Agent reads public source and delivers",
+    "Collaboration": "independent reader then aggregate/confirmation through explicitly shared Context"
+  },
+  "objective": "same normalized formula v1 as Mock; no assumed quality/reliability improvement",
+  "failure_policy": "Every attempt retained; no retry of a Task or Unknown call. Model/oracle failures are measured outcomes, never fabricated successful Tasks.",
+  "timing": "After ACP warm-up; includes Rust plan, prompts, Context, independent oracle and verification; setup and resource sampling separately identified",
+  "billing": "Local unbilled CPU inference, actual provider token receipts; real invoice UNKNOWN"
+}

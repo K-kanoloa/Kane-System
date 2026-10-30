@@ -1,0 +1,12 @@
+[package]
+name = "kane-models"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Deterministic mock backend for Kane System conformance testing"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+

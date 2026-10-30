@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible Kane System defect
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, private logs, Owner data or security exploit details. Use private vulnerability reporting for security issues.
+  - type: input
+    id: commit
+    attributes:
+      label: Kane System commit
+      placeholder: Full Git commit SHA
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, architecture, kernel, container runtime, model backend and relevant versions.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and sanitized evidence
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checks
+      options:
+        - label: I removed credentials, private data and private evidence.
+          required: true
+        - label: I did not count Mock or skipped tests as real compatibility evidence.
+          required: true

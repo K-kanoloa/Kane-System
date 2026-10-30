@@ -1,0 +1,7 @@
+[Unit]
+Description=Kane System Linux system services (development profile)
+Requires=kane-core.service
+After=kane-core.service
+
+[Install]
+WantedBy=multi-user.target

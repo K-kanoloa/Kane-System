@@ -1,0 +1,12 @@
+[Unit]
+Description=Optional replaceable Kane reference container backend
+ConditionPathExists=/usr/local/bin/dockerd
+After=local-fs.target
+[Service]
+Type=notify
+ExecStart=/usr/local/bin/dockerd --host=unix:///run/docker.sock --group=kane-runtime-docker --storage-driver=vfs --iptables=false --ip6tables=false --bridge=none --ip-forward=false --ip-masq=false
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=45
+[Install]
+WantedBy=multi-user.target

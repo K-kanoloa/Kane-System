@@ -1,0 +1,11 @@
+-- Owner policy / control-plane metadata, not additional native object types.
+CREATE TABLE IF NOT EXISTS control_owner(id INTEGER PRIMARY KEY CHECK(id=1),owner_ref TEXT NOT NULL,origin TEXT NOT NULL,rp_id TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS control_device(id TEXT PRIMARY KEY,token_hash TEXT UNIQUE NOT NULL,label TEXT NOT NULL,created_at INTEGER NOT NULL,revoked_at INTEGER);
+CREATE TABLE IF NOT EXISTS control_session(id TEXT PRIMARY KEY,token_hash TEXT UNIQUE NOT NULL,device_id TEXT NOT NULL REFERENCES control_device(id),expires_at INTEGER NOT NULL,revoked_at INTEGER);
+CREATE TABLE IF NOT EXISTS control_pairing(code_hash TEXT PRIMARY KEY,expires_at INTEGER NOT NULL,used INTEGER NOT NULL DEFAULT 0 CHECK(used IN (0,1)));
+CREATE TABLE IF NOT EXISTS control_credential(id TEXT PRIMARY KEY,key_json TEXT NOT NULL,sign_count INTEGER NOT NULL CHECK(sign_count>=0),revoked_at INTEGER);
+CREATE TABLE IF NOT EXISTS control_challenge(id TEXT PRIMARY KEY,purpose TEXT NOT NULL,challenge TEXT NOT NULL,device_id TEXT NOT NULL REFERENCES control_device(id),session_id TEXT,expires_at INTEGER NOT NULL,used INTEGER NOT NULL DEFAULT 0 CHECK(used IN (0,1)));
+CREATE TABLE IF NOT EXISTS workspace_control(task_id TEXT PRIMARY KEY REFERENCES task(id),workspace_id TEXT NOT NULL REFERENCES workspace(id),agent_id TEXT NOT NULL REFERENCES agent(id),session_id TEXT NOT NULL,phase TEXT NOT NULL CHECK(phase IN ('TakingOver','Human','Returning','Agent')),previous_state TEXT NOT NULL,read_path TEXT,snapshot_hash TEXT,expected_epoch INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE IF NOT EXISTS workspace_edit(id TEXT PRIMARY KEY,outbox_id TEXT UNIQUE NOT NULL REFERENCES outbox(id),task_id TEXT NOT NULL REFERENCES task(id),session_id TEXT NOT NULL,path TEXT NOT NULL,body_hash TEXT NOT NULL,before_hash TEXT,after_hash TEXT NOT NULL,content TEXT NOT NULL,epoch INTEGER NOT NULL,version INTEGER NOT NULL,state TEXT NOT NULL CHECK(state IN ('Attempting','Committed','Unknown','NotExecuted')));
+CREATE TABLE IF NOT EXISTS artifact_workspace(artifact_id TEXT PRIMARY KEY REFERENCES artifact(id),workspace_id TEXT NOT NULL REFERENCES workspace(id),workspace_version INTEGER NOT NULL,files_json TEXT NOT NULL);
+INSERT OR IGNORE INTO schema_version VALUES(8,unixepoch());

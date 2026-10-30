@@ -1,0 +1,11 @@
+#!/bin/sh
+set -eu
+if [ "$(cat /usr/share/kane-system/role)" = installer ]; then
+    /usr/bin/python3 /usr/libexec/kane-system/console.py
+    printf '\nInstaller is idle. Detach media before booting the installed disk.\n'
+    while :; do read -r answer; [ "$answer" = poweroff ] && exec /usr/bin/systemctl poweroff; done
+fi
+if [ ! -f /etc/kane-system/owner-initialized.json ]; then
+    /usr/bin/python3 /usr/libexec/kane-system/console.py
+fi
+exec /sbin/agetty --keep-baud 115200,38400,9600 ttyS0 vt220

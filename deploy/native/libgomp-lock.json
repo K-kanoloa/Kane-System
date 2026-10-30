@@ -1,0 +1,25 @@
+{
+  "component": "libgomp1",
+  "version": "14.2.0-4ubuntu2~24.04.1",
+  "architecture": "amd64",
+  "origin_dependency_record": {
+    "url": "https://archive.ubuntu.com/ubuntu/pool/main/g/gcc-14/libgomp1_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+    "package": "libgomp1_14.2.0-4ubuntu2~24.04.1_amd64.deb",
+    "sha256": "e8a95ec58125b4933597f30ff56c2ae10edf90f287262e366d4b6edea3019144",
+    "payload_sha256": "90e6985afcff6ba6f5a4bb5cec6e89531ca8151e5b941fd3aa4504526d4f8800",
+    "files": {
+      "usr/lib/x86_64-linux-gnu/libgomp.so.1": "135f3c8f006d2fe5e68e51281c7974cb991a03de3bfb3593d68d174dfcf854d1",
+      "usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0": "135f3c8f006d2fe5e68e51281c7974cb991a03de3bfb3593d68d174dfcf854d1"
+    },
+    "purpose": "offline test VM prerequisite, not Core or OS dependency lock",
+    "license": "GCC runtime library exception; package copyright retained"
+  },
+  "purpose": "Hash-pinned optional real CPU reference backend runtime; not a new Core or Agent implementation",
+  "license_notice": "/usr/share/doc/kane-native-libgomp/copyright",
+  "deployment": "vendored shared library from existing verified test dependency; not a dpkg install",
+  "files": {
+    "usr/lib/x86_64-linux-gnu/libgomp.so.1": "135f3c8f006d2fe5e68e51281c7974cb991a03de3bfb3593d68d174dfcf854d1",
+    "usr/lib/x86_64-linux-gnu/libgomp.so.1.0.0": "135f3c8f006d2fe5e68e51281c7974cb991a03de3bfb3593d68d174dfcf854d1",
+    "usr/share/doc/kane-native-libgomp/copyright": "20390f8a6f3b1e4d7cb45dd8652dabb259bbef688cbad839bcdb0b9ba7252f79"
+  }
+}

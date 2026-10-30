@@ -1,0 +1,13 @@
+{
+  "profile": "headless local x86-64 native reference",
+  "update_policy": "Owner-controlled signed OS slots; no unattended root mutation",
+  "masked_services": [
+    "apport.service", "snapd.service", "snapd.socket", "snapd.seeded.service",
+    "ModemManager.service", "pollinate.service", "apt-daily.service",
+    "apt-daily-upgrade.service", "unattended-upgrades.service",
+    "update-notifier-download.timer", "serial-getty@ttyS0.service"
+  ],
+  "apport_enabled": false,
+  "model_loading_budget_seconds": 180,
+  "authentication_network_capability_and_lease_checks": "unchanged"
+}

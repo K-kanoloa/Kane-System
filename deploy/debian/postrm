@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+if [ -d /run/systemd/system ]; then
+  systemctl daemon-reload
+fi
+# Intentionally retain service UID, state, workspaces and backups, even on purge.
+# Deleting persistent data is a separate explicit Owner action.
