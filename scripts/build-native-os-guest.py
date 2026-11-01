@@ -104,6 +104,8 @@ def main():
    dest=Path('/etc/initramfs-tools')/p.relative_to(native/'initramfs');dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,dest);dest.chmod(0o755)
  Path('/usr/share/kane-system/role').write_text('installed\n')
  Path('/usr/share/kane-system/build.json').write_text(json.dumps({'version':spec['version'],'sequence':spec['sequence'],'source_fingerprint':spec['source_fingerprint'],'reference_only':True,'base_os':'Ubuntu 24.04 LTS','architecture':'x86_64','real_hardware_verified':False},sort_keys=True)+'\n')
+ Path('/usr/share/doc/kane-system-core').mkdir(parents=True,exist_ok=True)
+ shutil.copyfile(SRC/'deploy/README.md','/usr/share/doc/kane-system-core/README.md')
  shutil.copyfile(SRC/'LICENSE','/usr/share/kane-system/LICENSE.source')
  run('dpkg-query','-W','-f=${Package}\t${Version}\t${Architecture}\n',stdout=open('/usr/share/kane-system/packages.tsv','w'))
  run('passwd','-l','root')

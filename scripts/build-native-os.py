@@ -34,7 +34,7 @@ def main():
  # Only source owned by this project; no worktree reset/index write/private caches.
  names=subprocess.check_output(['git','ls-files','--cached','--others','--exclude-standard','-z'],cwd=ROOT).decode().split('\0')
  prefixes=('core/','models/','supervisor/','adapters/','packages/kanaloa-tools/','apps/api/app/','deploy/native/','deploy/systemd/','deploy/defaults/','bench/phase6/')
- selected=sorted(n for n in set(names) if n and (n.startswith(prefixes) or n in ['Cargo.lock','Cargo.toml','LICENSE','package.json','package-lock.json','pnpm-lock.yaml'] or (n.startswith('scripts/') and 'native' in Path(n).name)) and (ROOT/n).is_file())
+ selected=sorted(n for n in set(names) if n and (n.startswith(prefixes) or n in ['Cargo.lock','Cargo.toml','LICENSE','deploy/README.md','package.json','package-lock.json','pnpm-lock.yaml'] or (n.startswith('scripts/') and 'native' in Path(n).name)) and (ROOT/n).is_file())
  manifest={n:sha(ROOT/n) for n in selected};inputs['source_fingerprint']=hashlib.sha256(json.dumps(manifest,sort_keys=True,separators=(',',':')).encode()).hexdigest()
  (out/'source-files.json').write_text(json.dumps(manifest,indent=2)+'\n');(out/'inputs.json').write_text(json.dumps(inputs,indent=2)+'\n')
  with tarfile.open(out/'source.tar','w') as t:
